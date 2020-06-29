@@ -6,6 +6,7 @@ import com.cxw.crpc.common.ResponseMsg;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.ReferenceCountUtil;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -36,10 +37,16 @@ public class ConsumerHandler extends ChannelInboundHandlerAdapter implements Cal
     @Override
     public synchronized void channelRead(ChannelHandlerContext ctx, Object obj)
             throws Exception {
-        System.out.println("read"+obj.toString());
-        ResponseMsg responseMsg = (ResponseMsg) obj;
-        this.responseMsg = responseMsg;
-        notify();
+        try {
+            System.out.println("read"+obj.toString());
+            ResponseMsg responseMsg = (ResponseMsg) obj;
+            this.responseMsg = new ResponseMsg(responseMsg.getCode(),responseMsg.getMsg(),responseMsg.getData());
+            notify();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            ReferenceCountUtil.release(obj);
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.cxw.crpc.common;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * @author chengxuwei
@@ -55,5 +56,15 @@ public class RequestMsg implements Serializable {
 
     public void setParamValues(Object[] paramValues) {
         this.paramValues = paramValues;
+    }
+
+    @Override
+    public String toString() {
+        return "RequestMsg{" +
+                "className='" + className + '\'' +
+                ", methodName='" + methodName + '\'' +
+                ", params=" + Arrays.toString(params) +
+                ", paramValues=" + Arrays.toString(paramValues) +
+                '}';
     }
 }
