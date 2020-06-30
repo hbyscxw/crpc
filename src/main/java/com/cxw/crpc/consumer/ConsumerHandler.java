@@ -13,9 +13,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
 
 /**
  * @author chengxuwei
@@ -26,7 +24,8 @@ public class ConsumerHandler extends ChannelInboundHandlerAdapter implements Cal
 
     private ChannelHandlerContext ctx;
     private RequestMsg requestMsg;
-    private ResponseMsg responseMsg;
+    //private ResponseMsg responseMsg;
+    private CompletableFuture<ResponseMsg> future;
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -35,13 +34,13 @@ public class ConsumerHandler extends ChannelInboundHandlerAdapter implements Cal
     }
 
     @Override
-    public synchronized void channelRead(ChannelHandlerContext ctx, Object obj)
+    public void channelRead(ChannelHandlerContext ctx, Object obj)
             throws Exception {
         try {
             System.out.println("read"+obj.toString());
             ResponseMsg responseMsg = (ResponseMsg) obj;
-            this.responseMsg = new ResponseMsg(responseMsg.getCode(),responseMsg.getMsg(),responseMsg.getData());
-            notify();
+            future.complete(new ResponseMsg(responseMsg.getCode(),responseMsg.getMsg(),responseMsg.getData()));
+            //notify(); 必须要 synchronized
         } catch (Exception e) {
             e.printStackTrace();
         }finally {
@@ -56,15 +55,17 @@ public class ConsumerHandler extends ChannelInboundHandlerAdapter implements Cal
     }
 
     @Override
-    public synchronized ResponseMsg call() throws Exception {
+    public ResponseMsg call() throws Exception {
+        future = new CompletableFuture<>();
         System.out.println("call"+requestMsg.toString());
         ctx.writeAndFlush(requestMsg);
-        wait();
-        return responseMsg;
+        //wait();  必须要 synchronized
+        return future.get(5, TimeUnit.SECONDS);
     }
 
     public void sentRequestMsg(RequestMsg requestMsg){
         System.out.println("send msg");
         this.requestMsg = requestMsg;
     }
+
 }

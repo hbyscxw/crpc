@@ -2,6 +2,7 @@ package com.cxw.crpc.consumer;
 
 import com.cxw.crpc.common.RequestMsg;
 import com.cxw.crpc.common.ResponseMsg;
+import com.cxw.crpc.serialize.kryo.KryoCodec;
 import com.cxw.crpc.thread.ThreadUtils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -47,14 +48,15 @@ public class Consumer {
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
-                            // 进行长度字段解码，这里也会对数据进行粘包和拆包处理
-                            ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(10*1024, 0, 2, 0, 2));
-                            // LengthFieldPrepender是一个编码器，主要是在响应字节数据前面添加字节长度字段
-                            ch.pipeline().addLast(new LengthFieldPrepender(2));
-                            // object解码
-                            ch.pipeline().addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
-                            // object编码
-                            ch.pipeline().addLast(new ObjectEncoder());
+//                            // 进行长度字段解码，这里也会对数据进行粘包和拆包处理
+//                            ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(10*1024, 0, 2, 0, 2));
+//                            // LengthFieldPrepender是一个编码器，主要是在响应字节数据前面添加字节长度字段
+//                            ch.pipeline().addLast(new LengthFieldPrepender(2));
+//                            // object解码
+//                            ch.pipeline().addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+//                            // object编码
+//                            ch.pipeline().addLast(new ObjectEncoder());
+                            ch.pipeline().addLast(new KryoCodec());
                             //ChannelPipeline用于存放管理ChannelHandel
                             //ChannelHandler用于处理请求响应的业务逻辑相关代码
                             ch.pipeline().addLast(handler);
